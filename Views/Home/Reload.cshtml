@@ -1,0 +1,68 @@
+﻿@{
+    ViewBag.Title = "Reload Qlikview";
+}
+<div class="row-fluid" style="position: relative">
+    <h2>@ViewBag.Message</h2>
+    <p>
+        <em>This page is used to reload the <strong>Consulting - MI dashboard</strong>. Please verify that the files 
+            were loaded successfully and the <strong>Consulting - MI Load Status</strong> report, on 
+            <a href="http://qlikview.uk.deloitte.com/" target="_blank">http://qlikview.uk.deloitte.com/</a> 
+            shows no errors, prior to reloading the dashboard.
+        </em>
+    
+    </p>
+    @using (Html.BeginForm("Reload", "Home", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal" }))
+    {
+        <fieldset>
+            <legend></legend>
+                        
+            @if(Model != null){
+            <div id="statusBox" class="alert alert-block fade in alert-@Model.Result">
+                <button class="close" data-dismiss="alert">×</button>
+                <h4 class="alert-heading">@(Model.Result == "success"?"The load process was successful!":"The load process failed...")</h4>
+                <p>
+                    @Html.Raw(Model.Message)
+                </p>
+            </div>
+                }
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-large btn-success" name="submitButton" value="loadFiles">Reload dashboard</button>                                         
+            </div>
+        </fieldset>
+    
+    }
+    <div class="loadingDiv">
+        <div class="ajax-loader">
+            <img src="/Content/img/loading.gif" id="ajax-spinner"/>
+            <h2>Please wait until the process ends.</h2>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    
+    $(".nav-list .active").removeClass("active");
+    $(".nav-list .reload-menu").addClass("active");
+
+    
+    function formFailure() {
+        $("#statusBox").removeClass("alert-success").addClass("alert-error").show();
+        $("#alertBox .alert-heading").innerHtml = "The dashboard failed to reload...";
+        $("#alertBox p").innerHtml = "The reload process was unsuccessful. Please try again. If the problem persists please refer to the about page.";
+    }
+
+    function formSuccess() {
+        $("#statusBox").removeClass("alert-error").addClass("alert-success").show();
+        $("#alertBox .alert-heading").innerHtml = "The dashboard was reloaded successfully!";
+        $("#alertBox p").innerHtml = "The dashboard was reloaded successfully! Please go to <a href=\"http://qlikview.uk.deloitte.com/\">http://qlikview.uk.deloitte.com/</a> to view the report."                                     + "for data consistency.";
+    }
+
+    $(document).ready(function () {
+        $(".form-horizontal").submit(function () {
+            if ($(".form-horizontal").valid()) {
+                $(".loadingDiv").show();
+
+                setTimeout('document.images["ajax-spinner"].src="/LoadData/Content/img/loading.gif"', 50);
+            }
+        });
+    });
+</script>
