@@ -32,6 +32,14 @@ sub gobble :Local :Args(0) {
 	$c->stash->{current_view} = 'TEXT';
 }
 
+sub gobbletest :Local :Args(2) {
+    my ( $self, $c, $query, $view ) = @_;
+    my $twitter = $c->model('twitter')->new;
+    $c->stash(response => $twitter->search($query) );	
+	$c->stash->{current_view} = $view || 'JSON';
+}
+
+
 =head2 default
 
 Standard 404 error page
