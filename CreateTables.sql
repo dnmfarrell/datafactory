@@ -2,6 +2,7 @@
 --Create Tweets and Search tables--
 -----------------------------------
 
+PRAGMA foreign_keys = ON;
 CREATE TABLE
 tweet
 (
