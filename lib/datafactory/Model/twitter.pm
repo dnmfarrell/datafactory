@@ -5,13 +5,25 @@ use namespace::autoclean;
 use Encode;
 use LWP::UserAgent;
 use JSON::XS qw(decode_json);
+use Data::Dumper;
 
 extends 'Catalyst::Model';
 
 sub search {
 	my ($self, $query) = @_;
 	my $tweets = $self->searchApi($query);
-	return $tweets ? decode_json $tweets : 0;
+	my $tweetshash = $tweets ? decode_json $tweets : 0;
+	$tweetshash = $tweetshash->{results};
+	my $returnTweets;
+	for (@{$tweetshash}) {
+		push @{$returnTweets}, {
+			text 		=> $_->{text},
+			username 	=> $_->{from_user},
+			date 		=> $_->{created_at}	
+		};
+	}	
+	print Dumper($returnTweets);
+	return $returnTweets;
 }
 
 sub searchApi {
