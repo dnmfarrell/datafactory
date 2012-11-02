@@ -20,7 +20,10 @@
     <script src="js/jquery.unobtrusive-ajax.min.js" type="text/javascript"></script>
     <script src="js/bootstrap.min.js" type="text/javascript"></script>
     <script src="js/bootstrap-alert.js" type="text/javascript"></script>
-
+    <script type="application/javascript" src="js/awesomechart.js"></script>
+    <script type="application/javascript" src="http://d3js.org/d3.v2.js"></script>
+    <script type="application/javascript" src="js/d3cloud.js"></script>
+    <!--<script src="js/cloud.js"></script>-->
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -37,7 +40,7 @@
   <body>
 
     <div id="header">
-        <a href="#"><img src="img/deloitte_logo.gif" alt="Deloitte LLP" border="0" id="logo" /></a>        
+        <a href=""><img src="img/deloitte_logo.gif" alt="Deloitte LLP" border="0" id="logo" /></a>        
     </div>
     
 
@@ -48,7 +51,7 @@
             <fieldset>
             <legend>Search</legend>
               <div class="control-group">
-                <input class="input-xxlarge" type="text" placeholder="Type something…">
+                <input class="input-xxlarge" type="text" placeholder="Type something…" id="searchterm">
               </div>
               <div class="accordion" id="accordion2">
                 <div class="accordion-group">
@@ -76,10 +79,26 @@
       </div><!--/span-->
     </div><!--/row-->
     <hr>
-    <div id="target">
-      Click here
+    <div class="span-4" id="wordcloud">
+      
     </div>
-    <div id="#result">
+    <div class="span-4">
+      <canvas id="canvas2" width="300" height="300">
+        Your web-browser does not support the HTML 5 canvas element.
+      </canvas>
+    </div>
+    <div class="span-4">
+      <canvas id="canvas3" width="300" height="300">
+        Your web-browser does not support the HTML 5 canvas element.
+      </canvas>
+    </div>
+    <div class="span-4">
+      <canvas id="canvas1" width="300" height="300">
+        Your web-browser does not support the HTML 5 canvas element.
+      </canvas>
+    </div>
+    <div class="span-12" id="result">
+      
     </div>
   </div><!--/.fluid-container-->
   <footer>
@@ -89,32 +108,199 @@
     
   </body>
   <script type="text/javascript">
-    $("#target").click(function() {
-      alert("Handler for .click() called.");
-    });
-
-    var jsonUrl = "http://localhost:3000/gobble";
-    $("#jsonform").submit(function(){  
-          alert("Handler for .click() called.");
-          var jqxhr = $.getJSON(jsonUrl, function() {
-                  alert("success");
-                })
-                .success(function() { alert("second success"); })
-                .error(function() { alert("error"); })
-                .complete(function() { alert("complete"); });
-              
-            
-          return false;  
-      });
-
-    $(document).ready(function () {
-
-      //  $.getJSON()  
-      
-
-      
-
-      
+   
+    var jsonUrl = "http://localhost:3000/gobbletest/{word}/json";
+    
+    $.ajaxSetup ({  
+        cache: false  
     });  
+    var ajax_load = "Loading...";  
+    var stopWords = /^(i|me|my|myself|we|us|our|ours|ourselves|you|your|yours|yourself|yourselves|he|him|his|himself|she|her|hers|herself|it|its|itself|they|them|their|theirs|themselves|what|which|who|whom|whose|this|that|these|those|am|is|are|was|were|be|been|being|have|has|had|having|do|does|did|doing|will|would|should|can|could|ought|i'm|you're|he's|she's|it's|we're|they're|i've|you've|we've|they've|i'd|you'd|he'd|she'd|we'd|they'd|i'll|you'll|he'll|she'll|we'll|they'll|isn't|aren't|wasn't|weren't|hasn't|haven't|hadn't|doesn't|don't|didn't|won't|wouldn't|shan't|shouldn't|can't|cannot|couldn't|mustn't|let's|that's|who's|what's|here's|there's|when's|where's|why's|how's|a|an|the|and|but|if|or|because|as|until|while|of|at|by|for|with|about|against|between|into|through|during|before|after|above|below|to|from|up|upon|down|in|out|on|off|over|under|again|further|then|once|here|there|when|where|why|how|all|any|both|each|few|more|most|other|some|such|no|nor|not|only|own|same|so|than|too|very|say|says|said|shall)$/;
+      
+
+  
+    function repURL(text)
+    {
+      return text.replace("{word}",$("#searchterm").val());
+    }
+
+    function dayToText(day)
+    {
+      switch(day){
+        case 0: return 'Sunday';
+        case 1: return 'Monday';
+        case 2: return 'Tuesday';
+        case 3: return 'Wednesday';
+        case 4: return 'Thursday';
+        case 5: return 'Friday';
+        case 6: return 'Saturday';
+      }
+    }
+
+    function monthToText(day)
+    {
+      switch(day){
+        case 0: return 'January';
+        case 1: return 'February';
+        case 2: return 'March';
+        case 3: return 'April';
+        case 4: return 'May';
+        case 5: return 'June';
+        case 6: return 'July';
+        case 7: return 'August';
+        case 8: return 'September';
+        case 9: return 'October';
+        case 10: return 'November';
+        case 11: return 'December';
+      }
+    }
+
+    $("#jsonform").submit(function(){ 
+        
+        if($("#searchterm").val()=="")
+          {
+            alert("search term missing");
+            return false;
+          }
+
+        $.getJSON(repURL(jsonUrl), function(data) {
+
+
+          var items = [];
+          var row = "";
+
+          var h = new Object();
+          var m = new Object();
+          var n = new Object();
+          var c = new Object();
+          var wordCount = new Object();
+          var mytweets = [];
+           
+          $.each(data, function(key, val) {
+            row = "<tr>";
+            
+            var dt = dayToText(new Date(val.date).getDay());
+            var mt = monthToText(new Date(val.date).getMonth());
+            var wordsI = val.text.split(" ");
+            var nt = wordsI.length;
+            var ct = val.text.length;
+
+            if(ct < 50 ) 
+              ct = " <50";
+
+            (h[dt] == null)? h[dt] = 1 : h[dt] += 1;
+            (m[ct] == null)? m[ct] = 1 : m[ct] += 1;
+            (n[nt] == null)? n[nt] = 1 : n[nt] += 1;
+            
+            
+            for (var i = 0; i < wordsI.length; i++) {
+                if (!stopWords.test(wordsI[i].toLowerCase())) {
+                  (wordCount[wordsI[i].toLowerCase()] == null)? 
+                        wordCount[wordsI[i].toLowerCase()] = 1 : 
+                        wordCount[wordsI[i].toLowerCase()] += 1;
+                }
+                  mytweets.push(wordsI[i].toLowerCase());
+            }
+
+            $.each(val, function(k,v){
+              row += "<td>" + v + "</td>";
+            });
+            row += "</tr>";
+            items.push(row);
+            
+          });
+
+          
+          
+          /*
+          $('<table/>', {
+            'class': 'my-new-list',
+            html: items.join('')
+          }).appendTo('#result');
+          */
+
+          var dataDay = [];
+          var labelsDay = [];
+          var dataM = [];
+          var labelsM = [];
+          var dataN = [];
+          var labelsN = [];
+
+          var dataC = [];
+          var labelC = [];
+          var dataC2 = [];
+          var labelC2 = [];
+
+          for (var k in wordCount) {
+            if(wordCount[k] > 4)
+            {
+              labelC2.push(k);
+              dataC2.push(wordCount[k]);
+            }
+            labelC.push(k);
+            dataC.push(wordCount[k]);
+          }
+
+          for (var k in h) {
+            labelsDay.push(k);
+            dataDay.push(h[k]);
+          }
+          for (var k in m) {
+            labelsM.push(k);
+            dataM.push(m[k]);
+          }
+          for (var k in n) {
+            labelsN.push(k);
+            dataN.push(n[k]);
+          }
+
+          d3.layout.cloud().size([300, 300])
+            .words(labelC.map(function(d) {
+              return {text: d, size: 10 + wordCount[d]/20 * 90};
+            }))
+            .rotate(function() { return ~~(Math.random() * 2) * 90; })
+            .fontSize(function(d) { return d.size; })
+            .on("end", draw)
+            .start();
+
+          drawMyChart('canvas1', dataC2, labelC2, 'Tweets per word');
+          drawMyChart('canvas2', dataM, labelsM, 'Tweets per number of characters');
+          drawMyChart('canvas3', dataN, labelsN,'Tweets per number of words');
+
+        });
+
+        return false;  
+    }); 
+
+    function drawMyChart(cnv, data, labels, title){
+      if(!!document.createElement('canvas').getContext){ //check that the canvas
+                                                         // element is supported
+          var mychart = new AwesomeChart(cnv);
+          mychart.title = title;
+          mychart.data = data;
+          mychart.labels = labels;
+          mychart.draw();
+      }
+    }
+    
+    function draw(words) {
+      $("#wordcloud").html('');
+
+      d3.select("#wordcloud").append("svg")
+        .attr("width", 300)
+        .attr("height", 300)
+      .append("g")
+        .attr("transform", "translate(150,150)")
+      .selectAll("text")
+        .data(words)
+      .enter().append("text")
+        .style("font-size", function(d) { return d.size + "px"; })
+        .attr("text-anchor", "middle")
+        .attr("transform", function(d) {
+          return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+        })
+        .text(function(d) { return d.text; });
+  }
+
   </script>
 </html>
