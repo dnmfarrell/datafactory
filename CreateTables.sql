@@ -6,11 +6,12 @@ CREATE TABLE
 tweet
 (
 T_ID int NOT NULL PRIMARY KEY,
---Search_ID int FOREIGN KEY REFERENCES Search(S_ID),
+Search_ID int NOT NULL,
 UserName varchar(180),
 TweetTime datetime,
 Location varchar(180),
-Tweet varchar(180)
+Tweet varchar(180),
+FOREIGN KEY (Search_ID) REFERENCES search(S_ID)
 );
 
 CREATE TABLE
