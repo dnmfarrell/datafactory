@@ -1,0 +1,138 @@
+﻿@model ConsultingMI.Models.ResultModel
+@{
+    ViewBag.Title = "Home Page";
+}
+<div class="row-fluid" style="position: relative">
+    <h2>@ViewBag.Message</h2>
+    <p>
+        <em>This application is used to update the data that supports the consulting MI reports.
+            Just click the <strong>Load Files</strong> button and the process will start. It
+            will take a few minutes to run everything. </em>
+    </p>
+    <ul>
+        <li>Revenue Forecast - Forecast by SA Revenue.xlsx</li>
+        <li>Hours Forecast - Forecast by SA Hours.xlsx</li>
+        <li>Practitioner Details - Consulting Utilisation and Availability Report.xlsx</li>
+    </ul>
+    <p>
+        <em>When the files are loaded, please verify that the <strong>Consulting - MI Load Status</strong> report, on 
+            <a href="http://qlikview.uk.deloitte.com/" target="_blank">http://qlikview.uk.deloitte.com/</a> 
+            shows no errors and go to @Html.ActionLink("Reload Dashboard","Reload") to reload the <strong>Consulting - MI Dashboard</strong>.</em>
+    </p>
+    @using (Html.BeginForm("Index", "Home", FormMethod.Post, new { enctype = "multipart/form-data", @class = "form-horizontal" }))
+    {
+        <fieldset>
+            <legend></legend>
+            <div class="control-group">
+                <label class="control-label" for="revenue">Forecast Revenue</label>
+                <div class="controls">
+                    <input class="input-file" id="revenue" name="revenue" type="file" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="hours">Forecast Hours</label>
+                <div class="controls">
+                    <input class="input-file" id="hours" name="hours" type="file" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="practitioner">Practitioner Details</label>
+                <div class="controls">
+                    <input class="input-file" id="practitioner" name="practitioner" type="file" />
+                </div>
+            </div>
+            
+            @if(Model != null){
+            <div id="statusBox" class="alert alert-block fade in alert-@Model.Result">
+                <button class="close" data-dismiss="alert">×</button>
+                <h4 class="alert-heading">@(Model.Result == "success"?"The load process was successful!":"The load process failed...")</h4>
+                <p>
+                    @Html.Raw(Model.Message);
+                </p>
+            </div>
+                }
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-large" name="submitButton" value="loadFiles">Load Files</button>                                         
+            </div>
+        </fieldset>
+    
+    }
+    <div class="loadingDiv">
+        <div class="ajax-loader">
+            <img src="/Content/img/loading.gif" id="ajax-spinner"/>
+            <h2>Please wait until the process ends.</h2>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    
+    $(".nav-list .active").removeClass("active");
+    $(".nav-list .index-menu").addClass("active");
+
+    jQuery.validator.addMethod("checkFile", function (value, element, param) {
+        return value.indexOf(param) >= 0;
+    }, "That's not the right file.");
+
+    function formFailure() {
+        $("#statusBox").removeClass("alert-success").addClass("alert-error").show();
+        $("#alertBox .alert-heading").innerHtml = "The load process failed...";
+        $("#alertBox p").innerHtml = "The load process was unsuccessful. Please try again and be sure that you are importing the "
+                            + "right files. If the problem persists please refer to the about page.";
+    }
+
+    function formSuccess() {
+        $("#statusBox").removeClass("alert-error").addClass("alert-success").show();
+        $("#alertBox .alert-heading").innerHtml = "The load process was successful!";
+        $("#alertBox p").innerHtml = "The files were loaded successfully! Please refresh the Qlikview report and check "
+                                     + "for data consistency.";
+    }
+
+    $(document).ready(function () {
+        $(".form-horizontal").validate({
+            errorClass: "help-inline",
+            validClass: "success",
+            errorElement: "span",
+            rules: {
+                revenue: {
+                    required: true,
+                    checkFile: "Forecast by SA Revenue.xlsx",
+                    accept: "xlsx"
+                },
+                hours: {
+                    required: true,
+                    checkFile: "Forecast by SA Hours.xlsx",
+                    accept: "xlsx"
+                },
+                practitioner: {
+                    required: true,
+                    checkFile: "Consulting Utilisation and Availability Report.xlsx",
+                    accept: "xlsx"
+                }
+            },
+            messages: {
+                revenue: "Please insert the file 'Forecast by SA Revenue.xlsx'",
+                hours: "Please insert the file 'Forecast by SA Hours.xlsx'",
+                practitioner: "Please insert the file 'Consulting Utilisation and Availability Report.xlsx'"
+            },
+            highlight: function (element, errorClass, validClass) {
+                $(element).parent().parent().addClass("error").removeClass("success");
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                $(element).parent().parent().removeClass("error").addClass("success");
+            }
+        });
+        
+        $(".form-horizontal").submit(function () {
+            if ($(".form-horizontal").valid()) {
+                $(".loadingDiv").show();
+
+                setTimeout('document.images["ajax-spinner"].src="/LoadData/Content/img/loading.gif"', 50);
+            }
+        });
+
+
+        $(".input-file").change(function () {
+            $(this).blur().focus();
+        });
+    });
+</script>
