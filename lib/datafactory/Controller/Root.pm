@@ -36,7 +36,7 @@ sub gobbletest :Local :Args(2) {
     my ( $self, $c, $query, $view ) = @_;
     my $twitter = $c->model('twitter')->new;
     $c->stash(response => $twitter->search($query) );	
-	$c->stash->{current_view} = $view || 'JSON';
+	$c->stash->{current_view} = uc $view || 'JSON';
 }
 
 
