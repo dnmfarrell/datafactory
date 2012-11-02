@@ -11,7 +11,7 @@ UserName varchar(180),
 TweetTime datetime,
 Location varchar(180),
 Tweet varchar(180)
-)
+);
 
 CREATE TABLE
 search
@@ -28,9 +28,9 @@ FromAccount varchar(180),
 ToAccount varchar(180),
 MentionAccount varchar(180),
 NearPlace varchar(180),
-Positive YesNo NOT NULL,
-Negative YesNo NOT NULL,
-Question YesNo NOT NULL,
-IncludeRetweets YesNo NOT NULL
-)
+Positive int(1) NOT NULL,
+Negative int(1) NOT NULL,
+Question int(1) NOT NULL,
+IncludeRetweets int(1) NOT NULL
+);
 
