@@ -4,6 +4,7 @@ use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller' }
 
+
 #
 # Sets the actions in this controller to be registered with no prefix
 # so they function identically to actions created in MyApp.pm
@@ -26,11 +27,9 @@ The root page (/)
 
 =cut
 
-sub index :Path :Args(0) {
-    my ( $self, $c ) = @_;
-
-    # Hello World
-    $c->response->body( $c->welcome_message );
+sub gobble :Local :Args(0) {
+    my ( $self, $c, $query, $view ) = @_;	
+	$c->stash->{current_view} = 'TEXT';
 }
 
 =head2 default
