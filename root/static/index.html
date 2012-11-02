@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Data Factory</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le styles -->
+    <link href="css/bootstrap.css" rel="stylesheet" type="text/css" />
+    <link href="css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="css/Site.css" rel="stylesheet" type="text/css" />
+    
+
+    
+    <script src="js/jquery-1.7.2.min.js" type="text/javascript"></script>
+    <script src="js/jquery.validate.min.js" type="text/javascript"></script>
+    <script src="js/jquery.unobtrusive-ajax.min.js" type="text/javascript"></script>
+    <script src="js/bootstrap.min.js" type="text/javascript"></script>
+    <script src="js/bootstrap-alert.js" type="text/javascript"></script>
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="../assets/ico/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="../assets/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="../assets/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="../assets/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="../assets/ico/apple-touch-icon-57-precomposed.png">
+  </head>
+
+  <body>
+
+    <div id="header">
+        <a href="#"><img src="img/deloitte_logo.gif" alt="Deloitte LLP" border="0" id="logo" /></a>        
+    </div>
+    
+
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div class="span3">
+          <div class="well sidebar-nav">
+            <ul class="nav nav-list">
+              <li class="nav-header">Menu</li>
+              <li class="active index-menu"><a href="#">Load Files</a></li>
+              <li class="reload-menu"><a href="#">Reload Dashboard</a></li>
+              <li class="about-menu"><a href="#">About</a></li>
+            </ul>
+          </div><!--/.well -->
+        </div><!--/span-->
+        <div class="span9">
+          <div class="row-fluid" style="position: relative">
+    <h2>@ViewBag.Message</h2>
+    <p>
+        <em>This application is used to update the data that supports the consulting MI reports.
+            Just click the <strong>Load Files</strong> button and the process will start. It
+            will take a few minutes to run everything. </em>
+    </p>
+    <ul>
+        <li>Revenue Forecast - Forecast by SA Revenue.xlsx</li>
+        <li>Hours Forecast - Forecast by SA Hours.xlsx</li>
+        <li>Practitioner Details - Consulting Utilisation and Availability Report.xlsx</li>
+    </ul>
+    <p>
+        <em>When the files are loaded, please verify that the <strong>Consulting - MI Load Status</strong> report, on 
+            <a href="http://qlikview.uk.deloitte.com/" target="_blank">http://qlikview.uk.deloitte.com/</a> 
+            shows no errors and go to @Html.ActionLink("Reload Dashboard","Reload") to reload the <strong>Consulting - MI Dashboard</strong>.</em>
+    </p>
+    <form action="#" class="form-horizontal" enctype="multipart/form-data" method="post">
+        <fieldset>
+            <legend></legend>
+            <div class="control-group">
+                <label class="control-label" for="revenue">Forecast Revenue</label>
+                <div class="controls">
+                    <input class="input-file" id="revenue" name="revenue" type="file" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="hours">Forecast Hours</label>
+                <div class="controls">
+                    <input class="input-file" id="hours" name="hours" type="file" />
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="practitioner">Practitioner Details</label>
+                <div class="controls">
+                    <input class="input-file" id="practitioner" name="practitioner" type="file" />
+                </div>
+            </div>
+            
+            
+            <div id="statusBox" class="alert alert-block fade in alert-@Model.Result">
+                <button class="close" data-dismiss="alert">×</button>
+                <h4 class="alert-heading">@(Model.Result == "success"?"The load process was successful!":"The load process failed...")</h4>
+                <p>
+                    Error message
+                </p>
+            </div>
+                
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-large" name="submitButton" value="loadFiles">Load Files</button>                                         
+            </div>
+        </fieldset>
+    
+    </form>
+    <div class="loadingDiv">
+        <div class="ajax-loader">
+            <img src="/Content/img/loading.gif" id="ajax-spinner"/>
+            <h2>Please wait until the process ends.</h2>
+        </div>
+    </div>
+</div>
+
+        </div><!--/span-->
+      </div><!--/row-->
+
+      <hr>
+
+      <footer>
+        <p>&copy; Deloitte 2012</p>
+      </footer>
+
+    </div><!--/.fluid-container-->
+  </body>
+  <script type="text/javascript">
+    
+    $(".nav-list .active").removeClass("active");
+    $(".nav-list .index-menu").addClass("active");
+
+    jQuery.validator.addMethod("checkFile", function (value, element, param) {
+        return value.indexOf(param) >= 0;
+    }, "That's not the right file.");
+
+    function formFailure() {
+        $("#statusBox").removeClass("alert-success").addClass("alert-error").show();
+        $("#alertBox .alert-heading").innerHtml = "The load process failed...";
+        $("#alertBox p").innerHtml = "The load process was unsuccessful. Please try again and be sure that you are importing the "
+                            + "right files. If the problem persists please refer to the about page.";
+    }
+
+    function formSuccess() {
+        $("#statusBox").removeClass("alert-error").addClass("alert-success").show();
+        $("#alertBox .alert-heading").innerHtml = "The load process was successful!";
+        $("#alertBox p").innerHtml = "The files were loaded successfully! Please refresh the Qlikview report and check "
+                                     + "for data consistency.";
+    }
+
+    $(document).ready(function () {
+        $(".form-horizontal").validate({
+            errorClass: "help-inline",
+            validClass: "success",
+            errorElement: "span",
+            rules: {
+                revenue: {
+                    required: true,
+                    checkFile: "Forecast by SA Revenue.xlsx",
+                    accept: "xlsx"
+                },
+                hours: {
+                    required: true,
+                    checkFile: "Forecast by SA Hours.xlsx",
+                    accept: "xlsx"
+                },
+                practitioner: {
+                    required: true,
+                    checkFile: "Consulting Utilisation and Availability Report.xlsx",
+                    accept: "xlsx"
+                }
+            },
+            messages: {
+                revenue: "Please insert the file 'Forecast by SA Revenue.xlsx'",
+                hours: "Please insert the file 'Forecast by SA Hours.xlsx'",
+                practitioner: "Please insert the file 'Consulting Utilisation and Availability Report.xlsx'"
+            },
+            highlight: function (element, errorClass, validClass) {
+                $(element).parent().parent().addClass("error").removeClass("success");
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                $(element).parent().parent().removeClass("error").addClass("success");
+            }
+        });
+        
+        $(".form-horizontal").submit(function () {
+            if ($(".form-horizontal").valid()) {
+                $(".loadingDiv").show();
+
+                setTimeout('document.images["ajax-spinner"].src="/LoadData/Content/img/loading.gif"', 50);
+            }
+        });
+
+
+        $(".input-file").change(function () {
+            $(this).blur().focus();
+        });
+    });
+</script>
+</html>
